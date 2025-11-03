@@ -1,0 +1,11 @@
+{
+    "version": "1.0.0",
+    "description": "Climate Dashboard - measure script for Raspberry Pi Pico",
+    "main": "code.py",
+    "author": "lastjnl",
+    "files": {
+        "updater.py": "updater.py",
+        "app/main.py": "app/main.py"
+    }
+    
+}
