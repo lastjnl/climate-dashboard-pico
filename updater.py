@@ -51,7 +51,7 @@ def update_file(file_path, tmp_file_path=None):
 
     ensure_directory_exists(file_path)
 
-    if file_path_exists(file_path):
+    if file_path_exists(file_path) and not tmp_file_path:
         os.remove(file_path)
         
     url = f"{github_main_url}{file_path}"
@@ -86,10 +86,8 @@ with open(config["version_file"], "r") as version_file:
             print (filePath)
             if filePath == "updater.py":
                 print("updating updater.py via tmp file...")
-                tmp_filePath = "updater_tmp.py"
+                tmp_filePath = "updater_pending.py"
                 update_file(filePath, tmp_filePath)
-                os.remove("updater.py")
-                os.rename(tmp_filePath, "updater.py")
             elif filePath not in prohibbited_files:
                 update_file(filePath)
             else:
