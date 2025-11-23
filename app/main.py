@@ -13,6 +13,8 @@ import adafruit_connection_manager
 from digitalio import *
 from secrets import secrets
 
+# Test comment
+
 # Config
 DEVICE_ID = secrets["device_id"]
 API_URL = secrets["api_url"]
