@@ -1,6 +1,11 @@
+import os
 import network
+import urequests as requests
+import machine
 
 from config import config
+
+import mqtt_client
 
 github_main_url = f"https://raw.githubusercontent.com/{config['github_user']}/{config['github_repo']}/main/"
 prohibbited_files = ["updater.py", "secrets.py", "config.py"]
@@ -8,34 +13,36 @@ prohibbited_files = ["updater.py", "secrets.py", "config.py"]
 def download_manifest():
     print("Downloading manifest...")
     url = f"{github_main_url}manifest.json"
-    response = requests.get(url)
+    response = requests.get(url=url)
     manifest = response.json()
     response.close()
     return manifest
 
+def ensure_directory_exists(file_path):
+    if "/" in file_path:
+        dir_name = file_path.rsplit("/", 1)[0]
+        try:
+            os.stat(dir_name)
+        except OSError:
+            parts = dir_name.split("/")
+            current = ""
+            for part in parts:
+                if not part:
+                    continue
+                current = current + "/" + part if current else part
+                try:
+                    os.stat(current)
+                except OSError:
+                    os.mkdir(current)
+    else:
+        return True
+    
 def file_path_exists(file_path):
     try:
         os.stat(file_path)
         return True
     except OSError:
         return False
-
-def mkdir_p(path):
-    parts = path.split("/")
-    curr = ""
-    for part in parts:
-        if not part:
-            continue
-        curr = curr + "/" + part if curr else part
-        try:
-            os.mkdir(curr)
-        except OSError:
-            pass
-
-def ensure_directory_exists(file_path):
-    if "/" in file_path:
-        dir_name = file_path.rsplit("/", 1)[0]
-        mkdir_p(dir_name)
 
 def update_file(file_path):
     print(f"Updating file: {file_path}")
@@ -44,9 +51,9 @@ def update_file(file_path):
 
     if file_path_exists(file_path):
         os.remove(file_path)
-
+        
     url = f"{github_main_url}{file_path}"
-    response = requests.get(url)
+    response = requests.get(url=url)
     with open(file_path, "w") as file:
         file.write(response.text)
     response.close()
@@ -69,6 +76,7 @@ print("Latest version:", manifest["version"])
 with open(config["version_file"], "r") as version_file:
     current_version = version_file.read().strip()
     if current_version != manifest["version"]:
+
         print(f"versions do not match, updating to latest version {manifest['version']}")
         for filePath in manifest["files"]:
             print (filePath)
@@ -76,4 +84,13 @@ with open(config["version_file"], "r") as version_file:
                 update_file(filePath)
             else:
                 print(f"Skipping prohibited file: {filePath}")
+
+        with open(config["version_file"], "w") as version_file:
+            version_file.write(manifest["version"])
+
+        mqtt_client.publish("device/updates", f"Device {config['device_id']} updated to version {manifest['version']}")
+        print("Update complete, restarting...")
+        # machine.reset()
+    else:
+        print("Already at latest version.")
             
