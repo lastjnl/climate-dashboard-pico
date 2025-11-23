@@ -1,5 +1,4 @@
 import os
-import network
 import urequests as requests
 import machine
 import time
@@ -62,15 +61,8 @@ def update_file(file_path, tmp_file_path=None):
         file.write(response.text)
     response.close()
 
-# Initalize Wifi, Socket Pool, Request Session
-wlan = network.WLAN(network.STA_IF)
-wlan.active(True)
-
-# Connect to Wifi
-wlan.connect(config["ssid"], config["password"])
-if wlan.isconnected():
-    print("Connected to ", config["ssid"])
-    print("IP:", wlan.ifconfig()[0])
+# Connect to network
+network_manager.connect()
 
 # Download manifest
 manifest = download_manifest()
