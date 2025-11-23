@@ -4,12 +4,13 @@ import urequests as requests
 import machine
 import time
 
+from utils import network_manager
 from config import config
 
 import mqtt_client
 
 github_main_url = f"https://raw.githubusercontent.com/{config['github_user']}/{config['github_repo']}/main/"
-prohibbited_files = ["updater.py", "secrets.py", "config.py"]
+prohibbited_files = ["updater.py", "config.py"]
 
 def download_manifest():
     print("Downloading manifest...")
@@ -45,7 +46,7 @@ def file_path_exists(file_path):
     except OSError:
         return False
 
-def update_file(file_path):
+def update_file(file_path, tmp_file_path=None):
     print(f"Updating file: {file_path}")
 
     ensure_directory_exists(file_path)
@@ -55,6 +56,8 @@ def update_file(file_path):
         
     url = f"{github_main_url}{file_path}"
     response = requests.get(url=url)
+    if tmp_file_path:
+        file_path = tmp_file_path
     with open(file_path, "w") as file:
         file.write(response.text)
     response.close()
@@ -81,7 +84,13 @@ with open(config["version_file"], "r") as version_file:
         print(f"versions do not match, updating to latest version {manifest['version']}")
         for filePath in manifest["files"]:
             print (filePath)
-            if filePath not in prohibbited_files:
+            if filePath == "updater.py":
+                print("updating updater.py via tmp file...")
+                tmp_filePath = "updater_tmp.py"
+                update_file(filePath, tmp_filePath)
+                os.remove("updater.py")
+                os.rename(tmp_filePath, "updater.py")
+            elif filePath not in prohibbited_files:
                 update_file(filePath)
             else:
                 print(f"Skipping prohibited file: {filePath}")

@@ -1,5 +1,6 @@
-from umqtt.simple import MQTTClient
+from umqtt.robust import MQTTClient 
 from config import config
+import time
 
 def connect():
     try:
@@ -20,3 +21,16 @@ def publish(topic, message):
     if client:
         client.publish(topic, message)
         client.disconnect()
+
+def listen(topic, callback):
+    client = connect()
+    if client:
+        client.set_callback(callback)
+        client.subscribe(topic)
+
+        try:
+            while True:
+                client.check_msg()
+                time.sleep(1)
+        finally:
+            client.disconnect()
