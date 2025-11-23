@@ -2,6 +2,7 @@ import os
 import network
 import urequests as requests
 import machine
+import time
 
 from config import config
 
@@ -12,7 +13,7 @@ prohibbited_files = ["updater.py", "secrets.py", "config.py"]
 
 def download_manifest():
     print("Downloading manifest...")
-    url = f"{github_main_url}manifest.json"
+    url = f"{github_main_url}manifest.json?nocache={time.time()}"
     response = requests.get(url=url)
     manifest = response.json()
     response.close()
@@ -90,7 +91,7 @@ with open(config["version_file"], "r") as version_file:
 
         mqtt_client.publish("device/updates", f"Device {config['device_id']} updated to version {manifest['version']}")
         print("Update complete, restarting...")
-        # machine.reset()
+        machine.reset()
     else:
         print("Already at latest version.")
             
