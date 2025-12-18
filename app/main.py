@@ -35,7 +35,7 @@ def send_temperature(temperature):
         
     led_manager.set_led_state('orange', False)
             
-ow_pin - machine.Pin(22)
+ow_pin = machine.Pin(22)
 ow_bus = onewire.OneWire(ow_pin)
 sensor = ds18x20.DS18X20(ow_bus)
 
