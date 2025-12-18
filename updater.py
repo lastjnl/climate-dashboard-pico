@@ -61,36 +61,38 @@ def update_file(file_path, tmp_file_path=None):
         file.write(response.text)
     response.close()
 
-# Connect to network
-network_manager.connect()
+def check_for_updates(force=False):
+    print("Checking for updates...")
+    # Connect to network
+    network_manager.connect()
 
-# Download manifest
-manifest = download_manifest()
-print("Latest version:", manifest["version"])
+    # Download manifest
+    manifest = download_manifest()
+    print("Latest version:", manifest["version"])
 
-# Check against current version, otherwise download and update files
-with open(config["version_file"], "r") as version_file:
-    current_version = version_file.read().strip()
-    if current_version != manifest["version"]:
+    # Check against current version, otherwise download and update files
+    with open(config["version_file"], "r") as version_file:
+        current_version = version_file.read().strip()
+        if current_version != manifest["version"] or force:
 
-        print(f"versions do not match, updating to latest version {manifest['version']}")
-        for filePath in manifest["files"]:
-            print (filePath)
-            if filePath == "updater.py":
-                print("updating updater.py via tmp file...")
-                tmp_filePath = "updater_pending.py"
-                update_file(filePath, tmp_filePath)
-            elif filePath not in prohibbited_files:
-                update_file(filePath)
-            else:
-                print(f"Skipping prohibited file: {filePath}")
+            print(f"versions do not match, updating to latest version {manifest['version']}")
+            for filePath in manifest["files"]:
+                print (filePath)
+                if filePath == "updater.py":
+                    print("updating updater.py via tmp file...")
+                    tmp_filePath = "updater_pending.py"
+                    update_file(filePath, tmp_filePath)
+                elif filePath not in prohibbited_files:
+                    update_file(filePath)
+                else:
+                    print(f"Skipping prohibited file: {filePath}")
 
-        with open(config["version_file"], "w") as version_file:
-            version_file.write(manifest["version"])
+            with open(config["version_file"], "w") as version_file:
+                version_file.write(manifest["version"])
 
-        mqtt_client.publish("device/updates", f"Device {config['device_id']} updated to version {manifest['version']}")
-        print("Update complete, restarting...")
-        machine.reset()
-    else:
-        print("Already at latest version.")
+            mqtt_client.publish("device/updates", f"Device {config['device_id']} updated to version {manifest['version']}")
+            print("Update complete, restarting...")
+            machine.reset()
+        else:
+            print("Already at latest version.")
             
