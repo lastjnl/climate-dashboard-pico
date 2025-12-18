@@ -2,6 +2,8 @@ from umqtt.robust import MQTTClient
 from config import config
 import time
 
+from utils.mqtt_message_handler import handle_incomming_message as callback
+
 def connect():
     try:
         client = MQTTClient(
@@ -22,7 +24,7 @@ def publish(topic, message):
         client.publish(topic, message)
         client.disconnect()
 
-def listen(topic, callback):
+def listen(topic):
     client = connect()
     if client:
         client.set_callback(callback)

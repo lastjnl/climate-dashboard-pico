@@ -6,7 +6,7 @@ import time
 from utils import network_manager
 from config import config
 
-import mqtt_client
+import utils.mqtt_client as mqtt_client
 
 github_main_url = f"https://raw.githubusercontent.com/{config['github_user']}/{config['github_repo']}/main/"
 prohibbited_files = ["updater.py", "config.py"]
