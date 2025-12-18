@@ -1,5 +1,5 @@
 {
-    "version": "1.2.0",
+    "version": "1.2.1",
     "description": "Climate Dashboard - measure script for Raspberry Pi Pico",
     "main": "code.py",
     "author": "lastjnl",
@@ -12,7 +12,7 @@
         "utils/led_manager.py": "utils/led_manager.py",
         "utils/mqtt_message_handler.py": "utils/mqtt_message_handler.py",
         "utils/mqtt_client.py": "utils/mqtt_client.py",
-        "utils/network.py": "utils/network.py",
+        "utils/network_manager.py": "utils/network_manager.py",
         "updater.py": "updater.py"
     }
     
