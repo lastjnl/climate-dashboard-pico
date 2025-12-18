@@ -8,4 +8,4 @@ if "updater_pending.py" in os.listdir():
     os.remove("updater_pending.py")
 
 import updater
-#import app.main
+import app.main
