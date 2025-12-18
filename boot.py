@@ -21,7 +21,7 @@ mip.install('urequests')
 # Connect to MQTT broker and publish a test message
 print("Connecting to MQTT broker...")
 mqtt.publish("device/updates", f"Device {config['device_id']} is starting up.")
-mqtt.listen("device/updates")
+mqtt.start_background_listener("device/updates")
 
 print("Starting main application...")
 main_app.start_measurement_loop()

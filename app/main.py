@@ -21,10 +21,12 @@ def send_temperature(temperature):
     postdata = ujson.dumps({ "deviceId": DEVICE_ID, "temperature": str(temperature)})
     response = requests.post(url, json=postdata)
 
+    print("Sent temperature data:", postdata)
+
     if response.status_code != 200:
         led_manager.set_led_state('red', True)
         responseData = response.json()
-        print(responseData["status"])
+        print(responseData)
         
     led_manager.set_led_state('orange', False)
 
@@ -51,4 +53,6 @@ def start_measurement_loop():
             temp_c = sensor.read_temp(device_addr)
             print("Temperatuur: {:.2f} °C".format(temp_c))
             send_temperature(temp_c)
+
+            mqtt.check_mqtt()
             time.sleep(300)

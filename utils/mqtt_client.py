@@ -12,7 +12,7 @@ def connect():
             user=config["mqtt_user"],
             password=config["mqtt_password"]
         )
-        client.connect()
+        client.connect(clean_session=True)
         return client
     except Exception as e:
         print(f"Failed to connect to MQTT broker: {e}")
@@ -24,15 +24,21 @@ def publish(topic, message):
         client.publish(topic, message)
         client.disconnect()
 
-def listen(topic):
-    client = connect()
-    if client:
-        client.set_callback(callback)
-        client.subscribe(topic)
+def start_background_listener(topic):
+    global _active_client
+    _active_client = connect()
+    if _active_client:
+        _active_client.set_callback(callback)
+        _active_client.subscribe(topic)
+        print("MQTT client is now listening in the background to topic:", topic)
 
+def check_mqtt():  # Call this periodically from your main loop
+    global _active_client
+    if _active_client:
         try:
-            while True:
-                client.check_msg()
-                time.sleep(1)
-        finally:
-            client.disconnect()
+            _active_client.check_msg()  # Non-blocking if socket set properly
+        except Exception as e:
+            print("MQTT check error:", e)
+            # Optionally reconnect
+            _active_client = None
+            start_background_listener("device/updates")  # pass topic or store it
