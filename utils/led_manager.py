@@ -18,9 +18,9 @@ def blink_led(led_name, times, delay=200):
     
     for _ in range(times):
         led.on()
-        machine.sleep(delay)
+        time.sleep(delay)
         led.off()
-        machine.sleep(delay)
+        time.sleep(delay)
 
 def set_led_state(led_name, state):
     led = led_map.get(led_name.lower())

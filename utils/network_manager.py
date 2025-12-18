@@ -5,7 +5,7 @@ import network
 from config import config
 
 def connect():
-    led_manager.blink_led('orange', 3, 100)
+    #led_manager.blink_led('orange', 3, 100)
     wlan = network.WLAN(network.STA_IF)
     wlan.active(True)
     wlan.connect(config["ssid"], config["password"])
