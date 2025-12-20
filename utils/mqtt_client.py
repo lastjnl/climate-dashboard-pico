@@ -4,6 +4,8 @@ import time
 
 from utils.mqtt_message_handler import handle_incomming_message as callback
 
+_active_client = None
+
 def connect():
     try:
         client = MQTTClient(
@@ -35,12 +37,17 @@ def start_background_listener(topic):
 def log(message):
     print(message)
     global _active_client
-    _active_client = connect()
+    # Use existing connection if available, otherwise try to connect
+    if not _active_client:
+        _active_client = connect()
+    
     if _active_client:
+        device_message = f"Device {config['device_id']}: {message}"
         try:
-            _active_client.publish("device/information", str(message))
+            _active_client.publish("device/information", str(device_message))
         except Exception as e:
             print(f"Failed to log to MQTT: {e}")
+            _active_client = None
 
 def check_mqtt():  # Call this periodically from your main loop
     global _active_client

@@ -11,14 +11,12 @@ from config import config
 github_main_url = f"https://raw.githubusercontent.com/{config['github_user']}/{config['github_repo']}/main/"
 prohibbited_files = ["updater.py", "config.py"]
 
-def download_manifest(wdt=None):
+def download_manifest():
     import utils.mqtt_client as mqtt_client
     mqtt_client.log("Downloading manifest...")
     url = f"{github_main_url}manifest.json?nocache={time.time()}"
     mqtt_client.log(f"URL: {url}")  # Debug: see what URL we're fetching
     
-    if wdt:
-        wdt.feed()
     try:
         response = requests.get(url)
         mqtt_client.log(f"Status: {response.status_code}")  # Debug: see response
@@ -63,7 +61,7 @@ def file_path_exists(file_path):
     except OSError:
         return False
 
-def update_file(file_path, tmp_file_path=None, wdt=None):
+def update_file(file_path, tmp_file_path=None):
     import utils.mqtt_client as mqtt_client
     mqtt_client.log(f"Updating file: {file_path}")
 
@@ -73,8 +71,6 @@ def update_file(file_path, tmp_file_path=None, wdt=None):
         os.remove(file_path)
         
     url = f"{github_main_url}{file_path}"
-    if wdt:
-        wdt.feed()
     response = requests.get(url=url)
     if tmp_file_path:
         file_path = tmp_file_path
@@ -82,14 +78,14 @@ def update_file(file_path, tmp_file_path=None, wdt=None):
         file.write(response.text)
     response.close()
 
-def check_for_updates(wdt=None, force=False):
+def check_for_updates(force=False):
     print("Checking for updates...")
     import utils.mqtt_client as mqtt_client
     # Connect to network
-    network_manager.connect(wdt=wdt)
+    network_manager.connect()
 
     # Download manifest
-    manifest = download_manifest(wdt)
+    manifest = download_manifest()
     if not manifest:
         mqtt_client.log("Failed to download manifest, aborting update.")
         return False
@@ -103,15 +99,13 @@ def check_for_updates(wdt=None, force=False):
 
             mqtt_client.log(f"versions do not match, updating to latest version {manifest['version']}")
             for filePath in manifest["files"]:
-                if wdt:
-                    wdt.feed()
                 print (filePath)
                 if filePath == "updater.py":
                     print("updating updater.py via tmp file...")
                     tmp_filePath = "updater_pending.py"
-                    update_file(filePath, tmp_filePath, wdt=wdt)
+                    update_file(filePath, tmp_filePath)
                 elif filePath not in prohibbited_files:
-                    update_file(filePath, wdt=wdt)
+                    update_file(filePath)
                 else:
                     mqtt_client.log(f"Skipping prohibited file: {filePath}")
 

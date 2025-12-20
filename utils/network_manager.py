@@ -2,11 +2,10 @@ import utils.led_manager as led_manager
 import network
 import time
 
-
 from config import config
 import utils.mqtt_client as mqtt_client
 
-def connect(wdt=None, timeout_s=15):
+def connect(timeout_s=15):
     led_manager.set_led_state('green', False)
     led_manager.set_led_state('red', False)
 
@@ -25,9 +24,6 @@ def connect(wdt=None, timeout_s=15):
 
     start = time.time()
     while not wlan.isconnected():
-        if wdt:
-            wdt.feed()
-
         if time.time() - start > timeout_s:
             print("Connection timed out")
             led_manager.set_led_state('red', True)
