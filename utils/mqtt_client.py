@@ -35,6 +35,7 @@ def start_background_listener(topic):
 def log(message):
     print(message)
     global _active_client
+    _active_client = connect()
     if _active_client:
         try:
             _active_client.publish("device/information", str(message))

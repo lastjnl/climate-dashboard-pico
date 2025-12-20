@@ -19,7 +19,7 @@ def connect(wdt=None, timeout_s=15):
         led_manager.set_led_state('green', True)
         return
     
-    mqtt_client.log("Connecting with wifi...")
+    print("Connecting with wifi...")
 
     wlan.connect(config["ssid"], config["password"])
 
@@ -29,7 +29,7 @@ def connect(wdt=None, timeout_s=15):
             wdt.feed()
 
         if time.time() - start > timeout_s:
-            mqtt_client.log("Connection timed out")
+            print("Connection timed out")
             led_manager.set_led_state('red', True)
             return False
         time.sleep(1)
