@@ -1,19 +1,21 @@
 {
-    "version": "1.2.6",
+    "version": "1.2.7",
     "description": "Climate Dashboard - measure script for Raspberry Pi Pico",
     "main": "code.py",
     "author": "lastjnl",
     "files": {
         "app/main.py": "app/main.py",
-        "umqtt/simple.py": "umqtt/simple.py",
-        "umqtt/robust.py": "umqtt/robust.py",
-        "boot.py": "boot.py",
+        "updater.py": "updater.py",
         "config.py": "config.py",
+        "umqtt/robust.py": "umqtt/robust.py",
+        "umqtt/simple.py": "umqtt/simple.py",
+        "utils/network_manager.py": "utils/network_manager.py",
+        "utils/mqtt_client.py": "utils/mqtt_client.py",
+        "utils/update_manifest.py": "utils/update_manifest.py",
         "utils/led_manager.py": "utils/led_manager.py",
         "utils/mqtt_message_handler.py": "utils/mqtt_message_handler.py",
-        "utils/mqtt_client.py": "utils/mqtt_client.py",
-        "utils/network_manager.py": "utils/network_manager.py",
-        "updater.py": "updater.py"
+        ".gitignore": ".gitignore",
+        "manifest.json": "manifest.json",
+        "boot.py": "boot.py"
     }
-    
 }

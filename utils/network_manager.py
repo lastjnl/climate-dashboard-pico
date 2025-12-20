@@ -10,7 +10,16 @@ def connect():
 
     wlan = network.WLAN(network.STA_IF)
     wlan.active(True)
-    wlan.connect(config["ssid"], config["password"])
+
+    if wlan.isconnected():
+        print("Already connected to ", config["ssid"])
+        print("IP:", wlan.ifconfig()[0])
+        led_manager.set_led_state('green', True)
+        return
+    
+    # Try connecting until successful
+    while wlan.isconnected() == False:
+        wlan.connect(config["ssid"], config["password"])
     
     if wlan.isconnected():
         print("Connected to ", config["ssid"])
