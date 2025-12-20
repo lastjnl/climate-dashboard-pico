@@ -14,10 +14,25 @@ prohibbited_files = ["updater.py", "config.py"]
 def download_manifest():
     print("Downloading manifest...")
     url = f"{github_main_url}manifest.json?nocache={time.time()}"
-    response = requests.get(url=url)
-    manifest = response.json()
-    response.close()
-    return manifest
+    print(f"URL: {url}")  # Debug: see what URL we're fetching
+    
+    try:
+        response = requests.get(url)
+        print(f"Status: {response.status_code}")  # Debug: see response
+        
+        if response.status_code == 200:
+            manifest = response.json()
+            response.close()
+            print("Manifest downloaded successfully")
+            return manifest
+        else:
+            print(f"Bad status code: {response.status_code}")
+            response.close()
+            return None
+            
+    except Exception as e:
+        print(f"Error downloading manifest: {e}")
+        return None
 
 def ensure_directory_exists(file_path):
     if "/" in file_path:
@@ -61,13 +76,17 @@ def update_file(file_path, tmp_file_path=None):
         file.write(response.text)
     response.close()
 
-def check_for_updates(force=False):
+def check_for_updates(wdt=None, force=False):
     print("Checking for updates...")
     # Connect to network
-    network_manager.connect()
+    network_manager.connect(wdt=wdt)
 
     # Download manifest
     manifest = download_manifest()
+    if not manifest:
+        print("Failed to download manifest, aborting update.")
+        return False
+    
     print("Latest version:", manifest["version"])
 
     # Check against current version, otherwise download and update files
@@ -95,4 +114,6 @@ def check_for_updates(force=False):
             machine.reset()
         else:
             print("Already at latest version.")
+        
+    return True
             
