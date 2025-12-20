@@ -6,12 +6,13 @@ import time
 from utils import network_manager
 from config import config
 
-import utils.mqtt_client as mqtt_client
+
 
 github_main_url = f"https://raw.githubusercontent.com/{config['github_user']}/{config['github_repo']}/main/"
 prohibbited_files = ["updater.py", "config.py"]
 
 def download_manifest(wdt=None):
+    import utils.mqtt_client as mqtt_client
     mqtt_client.log("Downloading manifest...")
     url = f"{github_main_url}manifest.json?nocache={time.time()}"
     mqtt_client.log(f"URL: {url}")  # Debug: see what URL we're fetching
@@ -63,6 +64,7 @@ def file_path_exists(file_path):
         return False
 
 def update_file(file_path, tmp_file_path=None, wdt=None):
+    import utils.mqtt_client as mqtt_client
     mqtt_client.log(f"Updating file: {file_path}")
 
     ensure_directory_exists(file_path)
@@ -82,6 +84,7 @@ def update_file(file_path, tmp_file_path=None, wdt=None):
 
 def check_for_updates(wdt=None, force=False):
     print("Checking for updates...")
+    import utils.mqtt_client as mqtt_client
     # Connect to network
     network_manager.connect(wdt=wdt)
 
