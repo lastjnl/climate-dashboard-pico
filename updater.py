@@ -11,14 +11,16 @@ import utils.mqtt_client as mqtt_client
 github_main_url = f"https://raw.githubusercontent.com/{config['github_user']}/{config['github_repo']}/main/"
 prohibbited_files = ["updater.py", "config.py"]
 
-def download_manifest():
-    print("Downloading manifest...")
+def download_manifest(wdt=None):
+    mqtt_client.log("Downloading manifest...")
     url = f"{github_main_url}manifest.json?nocache={time.time()}"
-    print(f"URL: {url}")  # Debug: see what URL we're fetching
+    mqtt_client.log(f"URL: {url}")  # Debug: see what URL we're fetching
     
+    if wdt:
+        wdt.feed()
     try:
         response = requests.get(url)
-        print(f"Status: {response.status_code}")  # Debug: see response
+        mqtt_client.log(f"Status: {response.status_code}")  # Debug: see response
         
         if response.status_code == 200:
             manifest = response.json()
@@ -26,12 +28,12 @@ def download_manifest():
             print("Manifest downloaded successfully")
             return manifest
         else:
-            print(f"Bad status code: {response.status_code}")
+            mqtt_client.log(f"Bad status code: {response.status_code}")
             response.close()
             return None
             
     except Exception as e:
-        print(f"Error downloading manifest: {e}")
+        mqtt_client.log(f"Error downloading manifest: {e}")
         return None
 
 def ensure_directory_exists(file_path):
@@ -60,8 +62,8 @@ def file_path_exists(file_path):
     except OSError:
         return False
 
-def update_file(file_path, tmp_file_path=None):
-    print(f"Updating file: {file_path}")
+def update_file(file_path, tmp_file_path=None, wdt=None):
+    mqtt_client.log(f"Updating file: {file_path}")
 
     ensure_directory_exists(file_path)
 
@@ -69,6 +71,8 @@ def update_file(file_path, tmp_file_path=None):
         os.remove(file_path)
         
     url = f"{github_main_url}{file_path}"
+    if wdt:
+        wdt.feed()
     response = requests.get(url=url)
     if tmp_file_path:
         file_path = tmp_file_path
@@ -82,38 +86,40 @@ def check_for_updates(wdt=None, force=False):
     network_manager.connect(wdt=wdt)
 
     # Download manifest
-    manifest = download_manifest()
+    manifest = download_manifest(wdt)
     if not manifest:
-        print("Failed to download manifest, aborting update.")
+        mqtt_client.log("Failed to download manifest, aborting update.")
         return False
     
-    print("Latest version:", manifest["version"])
+    mqtt_client.log("Latest version: " + manifest["version"])
 
     # Check against current version, otherwise download and update files
     with open(config["version_file"], "r") as version_file:
         current_version = version_file.read().strip()
         if current_version != manifest["version"] or force:
 
-            print(f"versions do not match, updating to latest version {manifest['version']}")
+            mqtt_client.log(f"versions do not match, updating to latest version {manifest['version']}")
             for filePath in manifest["files"]:
+                if wdt:
+                    wdt.feed()
                 print (filePath)
                 if filePath == "updater.py":
                     print("updating updater.py via tmp file...")
                     tmp_filePath = "updater_pending.py"
-                    update_file(filePath, tmp_filePath)
+                    update_file(filePath, tmp_filePath, wdt=wdt)
                 elif filePath not in prohibbited_files:
-                    update_file(filePath)
+                    update_file(filePath, wdt=wdt)
                 else:
-                    print(f"Skipping prohibited file: {filePath}")
+                    mqtt_client.log(f"Skipping prohibited file: {filePath}")
 
             with open(config["version_file"], "w") as version_file:
                 version_file.write(manifest["version"])
 
             mqtt_client.publish("device/updates", f"Device {config['device_id']} updated to version {manifest['version']}")
-            print("Update complete, restarting...")
+            mqtt_client.log("Update complete, restarting...")
             machine.reset()
         else:
-            print("Already at latest version.")
+            mqtt_client.log("Already at latest version.")
         
     return True
             

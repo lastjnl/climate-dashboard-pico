@@ -32,6 +32,15 @@ def start_background_listener(topic):
         _active_client.subscribe(topic)
         print("MQTT client is now listening in the background to topic:", topic)
 
+def log(message):
+    print(message)
+    global _active_client
+    if _active_client:
+        try:
+            _active_client.publish("device/information", str(message))
+        except Exception as e:
+            print(f"Failed to log to MQTT: {e}")
+
 def check_mqtt():  # Call this periodically from your main loop
     global _active_client
     if _active_client:

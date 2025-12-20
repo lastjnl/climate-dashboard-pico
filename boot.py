@@ -100,24 +100,36 @@ else:
     print("=" * 50)
     
     from config import config
+    import utils.network_manager as network_manager
+    import utils.mqtt_client as mqtt
     
     # Initialize watchdog
     print("Initializing watchdog (8 seconds)...")
     wdt = WDT(timeout=8000)
     wdt.feed()
-    
+
+    # Connect to Network and MQTT early to enable logging
+    try:
+        network_manager.connect(wdt=wdt)
+        wdt.feed()
+        mqtt.start_background_listener("device/updates")
+        wdt.feed()
+        mqtt.log(f"Device {config['device_id']} starting")
+    except Exception as e:
+        print(f"Early network/MQTT init failed: {e}")
+
     # Check for pending updater
     if "updater_pending.py" in os.listdir():
-        print("Applying pending updater update...")
+        mqtt.log("Applying pending updater update...")
         if "updater.py" in os.listdir():
             os.remove("updater.py")
         os.rename("updater_pending.py", "updater.py")
-        print("Updater updated successfully")
+        mqtt.log("Updater updated successfully")
     
     wdt.feed()
     
     # Update check with error handling
-    print("Checking for updates...")
+    mqtt.log("Checking for updates...")
     try:
         import updater
         wdt.feed()
@@ -126,25 +138,25 @@ else:
         wdt.feed()
         
         if update_result:
-            print("Update check successful")
+            mqtt.log("Update check successful")
             # Clear reset counter on successful update
             clear_reset_count()
         else:
-            print("Update check returned False, continuing...")
+            mqtt.log("Update check returned False, continuing...")
             
     except Exception as e:
-        print(f"Update check failed: {e}")
+        mqtt.log(f"Update check failed: {e}")
         wdt.feed()
     
     wdt.feed()
     
     # Install dependencies
-    print("Checking dependencies...")
+    mqtt.log("Checking dependencies...")
     try:
         import urequests
-        print("✓ urequests available")
+        mqtt.log("urequests available")
     except ImportError:
-        print("Installing urequests...")
+        mqtt.log("Installing urequests...")
         import mip
         wdt.feed()
         mip.install('urequests')
@@ -152,22 +164,12 @@ else:
     
     wdt.feed()
     
-    # Connect to MQTT
-    print("Connecting to MQTT broker...")
-    try:
-        import utils.mqtt_client as mqtt
-        wdt.feed()
-        mqtt.publish("device/updates", f"Device {config['device_id']} starting")
-        wdt.feed()
-        mqtt.start_background_listener("device/updates")
-        wdt.feed()
-    except Exception as e:
-        print(f"MQTT error: {e}")
-        wdt.feed()
+    # MQTT is already connected, but let's publish the specific start message again if needed, 
+    # or just proceed. We already logged "Device starting".
     
-    print("=" * 50)
-    print("Starting main application...")
-    print("=" * 50)
+    mqtt.log("=" * 50)
+    mqtt.log("Starting main application...")
+    mqtt.log("=" * 50)
     wdt.feed()
     
     # Clear reset counter on successful boot
@@ -178,7 +180,7 @@ else:
         wdt.feed()
         main_app.start_measurement_loop(wdt)
     except Exception as e:
-        print(f"Main app error: {e}")
+        mqtt.log(f"Main app error: {e}")
         wdt.feed()
         # Fallback mode
         while True:
